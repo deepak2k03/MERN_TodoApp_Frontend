@@ -1,10 +1,11 @@
+// AddTask.jsx
 import { useState } from "react";
 import "../style/addtask.css";
 import { useNavigate } from "react-router-dom";
 const API_BASE = import.meta.env.VITE_API_URL;
 
 const AddTask = () => {
-  const [taskData, setTaskData] = useState();
+  const [taskData, setTaskData] = useState({});
   const navigate = useNavigate();
 
   const handleAddTask = async () => {
@@ -14,20 +15,20 @@ const AddTask = () => {
     }
 
     try {
-      let result = await fetch(`${API_BASE}/add-task`, {
-        method: "POST", // fixed
+      const resp = await fetch(`${API_BASE}/add-task`, {
+        method: "POST",
         body: JSON.stringify(taskData),
         credentials: "include",
         headers: {
-          "Content-Type": "application/json", // fixed
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
         },
       });
-      result = await result.json().catch(() => ({}));
+      const result = await resp.json().catch(() => ({}));
       if (result && result.success) {
-        console.log("new task added");
         navigate("/");
       } else {
-        alert("Failed to add task. Please try again.");
+        alert(result.msg || "Failed to add task. Please try again.");
       }
     } catch (err) {
       console.error("handleAddTask error:", err);
@@ -38,23 +39,20 @@ const AddTask = () => {
   return (
     <div className="container">
       <h1>Add New Task</h1>
-      <label htmlFor="">Title</label>
+      <label>Title</label>
       <input
         onChange={(e) => setTaskData({ ...taskData, title: e.target.value })}
         type="text"
         name="title"
         placeholder="Enter task title"
       />
-      <label htmlFor="">Description</label>
+      <label>Description</label>
       <textarea
-        onChange={(e) =>
-          setTaskData({ ...taskData, description: e.target.value })
-        }
+        onChange={(e) => setTaskData({ ...taskData, description: e.target.value })}
         rows={5}
         name="description"
         placeholder="Enter task description "
-        id=""
-      ></textarea>
+      />
       <button onClick={handleAddTask} className="submit">
         Add New Task
       </button>

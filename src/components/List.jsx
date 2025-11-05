@@ -1,3 +1,4 @@
+// List.jsx
 import { Fragment, useEffect, useState } from "react";
 import "../style/list.css";
 import { Link } from "react-router-dom";
@@ -7,20 +8,28 @@ const List = () => {
   const [taskData, setTaskData] = useState([]);
   const [selectedTasks, setSelectedTasks] = useState([]);
 
+  const token = () => localStorage.getItem("token") || "";
+
   useEffect(() => {
     getListData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getListData = async () => {
     try {
       const resp = await fetch(`${API_BASE}/tasks`, {
+        method: "GET",
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token()}`,
+        },
       });
-      const list = await resp.json();
+      const list = await resp.json().catch(() => ({}));
       if (list && list.success) {
         setTaskData(list.result || []);
       } else {
-        alert("Failed to fetch tasks. Please try again.");
+        alert(list.msg || "Failed to fetch tasks. Please try again.");
       }
     } catch (err) {
       console.error("getListData error:", err);
@@ -33,13 +42,16 @@ const List = () => {
       const resp = await fetch(`${API_BASE}/delete/${id}`, {
         method: "DELETE",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token()}`,
+        },
       });
-      const item = await resp.json();
+      const item = await resp.json().catch(() => ({}));
       if (item && item.success) {
         getListData();
       } else {
-        alert("Failed to delete task. Please try again.");
+        alert(item.msg || "Failed to delete task. Please try again.");
       }
     } catch (err) {
       console.error("deleteTask error:", err);
@@ -77,6 +89,7 @@ const List = () => {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token()}`,
         },
       });
       const res = await resp.json().catch(() => ({}));
@@ -84,7 +97,7 @@ const List = () => {
         setSelectedTasks([]);
         getListData();
       } else {
-        alert("Failed to delete selected tasks. Please try again.");
+        alert(res.msg || "Failed to delete selected tasks. Please try again.");
       }
     } catch (err) {
       console.error("deleteMultiple error:", err);
@@ -120,10 +133,7 @@ const List = () => {
               <li className="list-item"> {item.title} </li>
               <li className="list-item"> {item.description} </li>
               <li className="list-item">
-                <button
-                  onClick={() => deleteTask(item._id)}
-                  className="delete-item"
-                >
+                <button onClick={() => deleteTask(item._id)} className="delete-item">
                   Delete
                 </button>
                 <Link to={"update/" + item._id} className="update-item">

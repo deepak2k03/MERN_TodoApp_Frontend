@@ -1,30 +1,34 @@
+// UpdateTask.jsx
 import "../style/addtask.css";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 const API_BASE = import.meta.env.VITE_API_URL;
 
 const UpdateTask = () => {
-  const [taskData, setTaskData] = useState({}); // initialize as object
+  const [taskData, setTaskData] = useState({});
   const navigate = useNavigate();
   const { id } = useParams();
 
   useEffect(() => {
     if (id) getTask(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const getTask = async (id) => {
     try {
       const resp = await fetch(`${API_BASE}/task/${id}`, {
         method: "GET",
-        credentials: "include", // include cookie so protected route works
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
       });
       const task = await resp.json().catch(() => ({}));
       if (task && task.success && task.result) {
         setTaskData(task.result);
       } else {
-        console.warn("getTask: unexpected response", task);
-        alert("Failed to fetch task. Please try again.");
+        alert(task.msg || "Failed to fetch task. Please try again.");
       }
     } catch (err) {
       console.error("getTask error:", err);
@@ -40,6 +44,7 @@ const UpdateTask = () => {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
         },
       });
       const result = await resp.json().catch(() => ({}));
@@ -47,8 +52,7 @@ const UpdateTask = () => {
         alert("Task Updated Successfully");
         navigate("/");
       } else {
-        console.warn("updateTask failed:", result);
-        alert("Failed to update task. Please try again.");
+        alert(result.msg || "Failed to update task. Please try again.");
       }
     } catch (err) {
       console.error("updateTask error:", err);
@@ -70,9 +74,7 @@ const UpdateTask = () => {
       <label>Description</label>
       <textarea
         value={taskData?.description || ""}
-        onChange={(e) =>
-          setTaskData({ ...taskData, description: e.target.value })
-        }
+        onChange={(e) => setTaskData({ ...taskData, description: e.target.value })}
         rows={5}
         name="description"
         placeholder="Enter task description "
