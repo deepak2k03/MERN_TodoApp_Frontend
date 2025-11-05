@@ -15,34 +15,38 @@ const Login = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleLogin = async () => {
-    try {
-      const resp = await fetch(`${API_BASE}/login`, {
-        method: "POST",
-        credentials: "include", // keep cookie flow
-        body: JSON.stringify(userData),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const result = await resp.json().catch(() => ({}));
+// Replace your existing handleLogin with this exact function
+const handleLogin = async () => {
+  try {
+    const resp = await fetch(`${API_BASE}/login`, {
+      method: "POST",
+      credentials: "include", // keep cookie flow
+      body: JSON.stringify(userData),
+      headers: { "Content-Type": "application/json" },
+    });
 
-      if (result && result.success) {
-        // save token for Authorization header fallback
-        if (result.token) localStorage.setItem("token", result.token);
+    // parse JSON (defensive)
+    const result = await resp.json().catch(() => ({}));
+    console.log("DEBUG: /login response:", result);
 
-        // keep the existing login marker (if you use it elsewhere)
-        localStorage.setItem("login", userData.email);
-        window.dispatchEvent(new Event("localStorage-change"));
-        navigate("/");
-      } else {
-        alert(result.msg || "Please check your email or password");
-      }
-    } catch (err) {
-      console.error("handleLogin error:", err);
-      alert("Network/server error during login. Please try again.");
+    // force-store token (will store empty string if none, for debug)
+    localStorage.setItem("token", result.token || "");
+    console.log("DEBUG: stored token:", localStorage.getItem("token"));
+
+    if (result && result.success) {
+      // optional existing logic
+      localStorage.setItem("login", userData.email);
+      window.dispatchEvent(new Event("localStorage-change"));
+      navigate("/");
+    } else {
+      alert(result.msg || "Please check your email or password");
     }
-  };
+  } catch (err) {
+    console.error("handleLogin error:", err);
+    alert("Network/server error during login. Please try again.");
+  }
+};
+
 
   return (
     <div className="container">
