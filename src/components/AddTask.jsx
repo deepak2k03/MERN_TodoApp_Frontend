@@ -1,12 +1,14 @@
 import { useState } from "react";
 import "../style/addtask.css";
 import { useNavigate } from "react-router-dom";
+const API_BASE = import.meta.env.VITE_API_URL;
+
 
 const AddTask = () => {
   const [taskData, setTaskData] = useState();
   const navigate =useNavigate();
   const handleAddTask = async () => {
-    let result= await fetch('http://localhost:3200/add-task',{
+    let result= await fetch(`${API_BASE}/add-task`,{
         method:'Post',
         body:JSON.stringify(taskData),
         credentials: 'include',

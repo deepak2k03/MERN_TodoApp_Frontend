@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "../style/addtask.css";
 import { Link, useNavigate } from "react-router-dom";
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const SignUp = () => {
   const [userData, setUserData] = useState();
@@ -13,7 +14,7 @@ const SignUp = () => {
     })
 
   const handleSingUp = async() => {
-    let result = await fetch("http://localhost:3200/signup", {
+    let result = await fetch(`${API_BASE}/signup`, {
         method: "POST", 
         body: JSON.stringify(userData),
         headers: {

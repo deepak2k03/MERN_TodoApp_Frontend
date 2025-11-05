@@ -1,6 +1,8 @@
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import "../style/navbar.css";
 import { useEffect, useState } from "react";
+
+
 const NavBar = () => {
   const navigate=useNavigate();
   const [login, setLogin] = useState(localStorage.getItem("login"));

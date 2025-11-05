@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { useState } from "react";
 import "../style/list.css";
 import { Link } from "react-router-dom";
+const API_BASE = import.meta.env.VITE_API_URL;
+
 
 const List = () => {
   const [taskData, setTaskData] = useState([]);
@@ -12,7 +14,7 @@ const List = () => {
   }, []);
 
   const getListData = async () => {
-    let list = await fetch("http://localhost:3200/tasks",{
+    let list = await fetch(`${API_BASE}/tasks`,{
       credentials: 'include'
       // include cookies in the request
     });
@@ -26,7 +28,7 @@ const List = () => {
   };
 
   const deleteTask = async (id) => {
-    let item = await fetch(`http://localhost:3200/delete/${id}`, {
+    let item = await fetch(`${API_BASE}/delete/${id}`, {
       method: "DELETE",
       credentials: 'include'
     });
@@ -56,7 +58,7 @@ const List = () => {
   };
 
   const deleteMultiple = async () => {
-    let item = await fetch(`http://localhost:3200/delete-multiple/`, {
+    let item = await fetch(`${API_BASE}/delete-multiple/`, {
       method: "DELETE",
       body: JSON.stringify(selectedTasks),
       credentials: 'include',

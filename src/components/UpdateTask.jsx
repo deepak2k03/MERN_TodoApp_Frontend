@@ -1,6 +1,7 @@
 import "../style/addtask.css";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+const API_BASE = import.meta.env.VITE_API_URL;
 
 
 const UpdateTask = () => {
@@ -11,7 +12,7 @@ const UpdateTask = () => {
     getTask(id);
   },[]);
 const getTask = async(id)=>{
-    let task = await fetch(`http://localhost:3200/task/${id}`);
+    let task = await fetch(`${API_BASE}/task/${id}`);
     task = await task.json();
     if(task.result){
         setTaskData(task.result);
@@ -19,7 +20,7 @@ const getTask = async(id)=>{
 }
 
 const updateTask = async() => {
-    let task = await fetch("http://localhost:3200/update-task", {
+    let task = await fetch(`${API_BASE}/update-task`, {
         method: "PUT",
         body: JSON.stringify(taskData),
         headers: {
