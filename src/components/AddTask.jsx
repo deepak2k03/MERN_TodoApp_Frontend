@@ -3,28 +3,38 @@ import "../style/addtask.css";
 import { useNavigate } from "react-router-dom";
 const API_BASE = import.meta.env.VITE_API_URL;
 
-
 const AddTask = () => {
   const [taskData, setTaskData] = useState();
-  const navigate =useNavigate();
+  const navigate = useNavigate();
+
   const handleAddTask = async () => {
-    let result= await fetch(`${API_BASE}/add-task`,{
-        method:'Post',
-        body:JSON.stringify(taskData),
-        credentials: 'include',
-        headers:{
-            'Content-Type':'Application/Json'
-        }
-    })
-    result=await result.json();
-    if(result.success){
-      console.log("new task added");
-      navigate('/');
+    if (!taskData || !taskData.title) {
+      alert("Please enter a title for the task.");
+      return;
     }
-    else{
+
+    try {
+      let result = await fetch(`${API_BASE}/add-task`, {
+        method: "POST", // fixed
+        body: JSON.stringify(taskData),
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json", // fixed
+        },
+      });
+      result = await result.json().catch(() => ({}));
+      if (result && result.success) {
+        console.log("new task added");
+        navigate("/");
+      } else {
         alert("Failed to add task. Please try again.");
+      }
+    } catch (err) {
+      console.error("handleAddTask error:", err);
+      alert("Network error while adding task. Please try again.");
     }
   };
+
   return (
     <div className="container">
       <h1>Add New Task</h1>

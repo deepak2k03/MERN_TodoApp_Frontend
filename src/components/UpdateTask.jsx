@@ -3,60 +3,81 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 const API_BASE = import.meta.env.VITE_API_URL;
 
-
 const UpdateTask = () => {
-  const [taskData, setTaskData] = useState();
-  const navigate =useNavigate();
-  const {id} = useParams();
-  useEffect(() =>{
-    getTask(id);
-  },[]);
-const getTask = async(id)=>{
-    let task = await fetch(`${API_BASE}/task/${id}`);
-    task = await task.json();
-    if(task.result){
-        setTaskData(task.result);
-    }
-}
+  const [taskData, setTaskData] = useState({}); // initialize as object
+  const navigate = useNavigate();
+  const { id } = useParams();
 
-const updateTask = async() => {
-    let task = await fetch(`${API_BASE}/update-task`, {
+  useEffect(() => {
+    if (id) getTask(id);
+  }, [id]);
+
+  const getTask = async (id) => {
+    try {
+      const resp = await fetch(`${API_BASE}/task/${id}`, {
+        method: "GET",
+        credentials: "include", // include cookie so protected route works
+        headers: { "Content-Type": "application/json" },
+      });
+      const task = await resp.json().catch(() => ({}));
+      if (task && task.success && task.result) {
+        setTaskData(task.result);
+      } else {
+        console.warn("getTask: unexpected response", task);
+        alert("Failed to fetch task. Please try again.");
+      }
+    } catch (err) {
+      console.error("getTask error:", err);
+      alert("Network error while fetching task. Please try again.");
+    }
+  };
+
+  const updateTask = async () => {
+    try {
+      const resp = await fetch(`${API_BASE}/update-task`, {
         method: "PUT",
         body: JSON.stringify(taskData),
+        credentials: "include",
         headers: {
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       });
-      task = await task.json();
-      if (task) {
+      const result = await resp.json().catch(() => ({}));
+      if (result && result.success) {
         alert("Task Updated Successfully");
-        navigate("/");  
+        navigate("/");
+      } else {
+        console.warn("updateTask failed:", result);
+        alert("Failed to update task. Please try again.");
       }
-}
+    } catch (err) {
+      console.error("updateTask error:", err);
+      alert("Network error while updating task. Please try again.");
+    }
+  };
+
   return (
     <div className="container">
       <h1>Update Task</h1>
-      <label htmlFor="">Title</label>
+      <label>Title</label>
       <input
-            value={taskData?.title}
+        value={taskData?.title || ""}
         onChange={(e) => setTaskData({ ...taskData, title: e.target.value })}
         type="text"
         name="title"
         placeholder="Enter task title"
       />
-      <label htmlFor="">Description</label>
+      <label>Description</label>
       <textarea
-        value={taskData?.description}
+        value={taskData?.description || ""}
         onChange={(e) =>
           setTaskData({ ...taskData, description: e.target.value })
         }
         rows={5}
         name="description"
         placeholder="Enter task description "
-        id=""
-      ></textarea>
+      />
       <button className="submit" onClick={updateTask}>
-
         Update Task
       </button>
     </div>

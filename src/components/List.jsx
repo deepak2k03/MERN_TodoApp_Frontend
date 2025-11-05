@@ -1,45 +1,52 @@
-import { Fragment } from "react";
-import { useEffect } from "react";
-import { useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import "../style/list.css";
 import { Link } from "react-router-dom";
 const API_BASE = import.meta.env.VITE_API_URL;
 
-
 const List = () => {
   const [taskData, setTaskData] = useState([]);
   const [selectedTasks, setSelectedTasks] = useState([]);
+
   useEffect(() => {
     getListData();
   }, []);
 
   const getListData = async () => {
-    let list = await fetch(`${API_BASE}/tasks`,{
-      credentials: 'include'
-      // include cookies in the request
-    });
-    list = await list.json();
-    if (list.success) {
-      setTaskData(list.result);
-    }
-    else{
-      alert("Failed to fetch tasks. Please try again.");
+    try {
+      const resp = await fetch(`${API_BASE}/tasks`, {
+        credentials: "include",
+      });
+      const list = await resp.json();
+      if (list && list.success) {
+        setTaskData(list.result || []);
+      } else {
+        alert("Failed to fetch tasks. Please try again.");
+      }
+    } catch (err) {
+      console.error("getListData error:", err);
+      alert("Network error while fetching tasks. Please try again.");
     }
   };
 
   const deleteTask = async (id) => {
-    let item = await fetch(`${API_BASE}/delete/${id}`, {
-      method: "DELETE",
-      credentials: 'include'
-    });
-    item = await item.json();
-    if (item.success) {
-      getListData();
-    }
-    else{
-      alert("Failed to delete task. Please try again.");
+    try {
+      const resp = await fetch(`${API_BASE}/delete/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      const item = await resp.json();
+      if (item && item.success) {
+        getListData();
+      } else {
+        alert("Failed to delete task. Please try again.");
+      }
+    } catch (err) {
+      console.error("deleteTask error:", err);
+      alert("Network error while deleting task. Please try again.");
     }
   };
+
   const selectAll = (e) => {
     if (e.target.checked) {
       let items = taskData.map((task) => task._id);
@@ -48,6 +55,7 @@ const List = () => {
       setSelectedTasks([]);
     }
   };
+
   const selectSingleItem = (id) => {
     if (selectedTasks.includes(id)) {
       let filteredItems = selectedTasks.filter((itemId) => itemId !== id);
@@ -58,21 +66,29 @@ const List = () => {
   };
 
   const deleteMultiple = async () => {
-    let item = await fetch(`${API_BASE}/delete-multiple/`, {
-      method: "DELETE",
-      body: JSON.stringify(selectedTasks),
-      credentials: 'include',
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const res = await item.json().catch(() => ({}));
-    if (res.success) {
-      setSelectedTasks([]);
-      getListData();
+    if (!selectedTasks || selectedTasks.length === 0) {
+      alert("No tasks selected.");
+      return;
     }
-    else{
-      alert("Failed to delete selected tasks. Please try again.");
+    try {
+      const resp = await fetch(`${API_BASE}/delete-multiple`, {
+        method: "DELETE",
+        body: JSON.stringify(selectedTasks),
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const res = await resp.json().catch(() => ({}));
+      if (res && res.success) {
+        setSelectedTasks([]);
+        getListData();
+      } else {
+        alert("Failed to delete selected tasks. Please try again.");
+      }
+    } catch (err) {
+      console.error("deleteMultiple error:", err);
+      alert("Network error while deleting selected tasks. Please try again.");
     }
   };
 
